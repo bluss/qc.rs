@@ -43,39 +43,49 @@ impl Shrink for u8 {
     }
 }
 
-impl<A: Owned + Clone + Shrink, B: Owned + Clone + Shrink> Shrink for (A, B) {
-    fn shrink(&self) -> Lazy<(A, B)> {
-        do Lazy::create |L| {
-            match self {
-                &(ref A, ref B) => {
-                    let ac = A.clone();
-                    let bc = B.clone();
-                    L.push_map(A.shrink(), |a| (a, bc.clone()));
-                    L.push_map(B.shrink(), |b| (ac.clone(), b));
+macro_rules! shrink_tuple(
+    ($($T:ident),+ -> $($U:ident),+ -> $($S:expr),+) => (
+    impl<$($T: Owned + Clone + Shrink),+> Shrink for ($($T),+) {
+        fn shrink(&self) -> Lazy<($($T),+)> {
+            do Lazy::create |L| {
+                match self {
+                    &($(ref $T),+) => {
+                        $(
+                            let $U = $T.clone();
+                        )+
+                        $(
+                            L.push_map($T.shrink(), |s| $S);
+                        )+
+                    }
                 }
             }
         }
     }
-}
+    )
+)
 
-impl<A: Owned + Clone + Shrink,
-     B: Owned + Clone + Shrink,
-     C: Owned + Clone + Shrink> Shrink for (A, B, C) {
-    fn shrink(&self) -> Lazy<(A, B, C)> {
-        let mut L = Lazy::new();
-        match *self {
-            (ref A, ref B, ref C) => {
-                let Ac = A.clone();
-                let Bc = B.clone();
-                let Cc = C.clone();
-                L.push_map(A.shrink(), |s| (s, Bc.clone(), Cc.clone()));
-                L.push_map(B.shrink(), |s| (Ac.clone(), s, Cc.clone()));
-                L.push_map(C.shrink(), |s| (Ac.clone(), Bc.clone(), s));
-            }
-        }
-        L
-    }
-}
+shrink_tuple!(
+    A, B ->
+    a, b -> 
+    (s, b.clone()),
+    (a.clone(), s))
+
+shrink_tuple!(
+    A, B, C ->
+    a, b, c -> 
+    (s, b.clone(), c.clone()),
+    (a.clone(), s, c.clone()),
+    (a.clone(), b.clone(), s))
+
+shrink_tuple!(
+    A, B, C, D
+    ->
+    a, b, c, d
+    ->
+    (s, b.clone(), c.clone(), d.clone()),
+    (a.clone(), s, c.clone(), d.clone()),
+    (a.clone(), b.clone(), s, d.clone()),
+    (a.clone(), b.clone(), c.clone(), s))
 
 impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
