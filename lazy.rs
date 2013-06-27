@@ -22,7 +22,11 @@ impl<A, B> Callable<B> for Thunk<A, B> {
 
 impl<T> Lazy<T> {
     pub fn new() -> Lazy<T> {
-        Lazy{head: ~[], thunks: ~[]}
+        Lazy::new_from(~[])
+    }
+
+    pub fn new_from(v: ~[T]) -> Lazy<T> {
+        Lazy{head: v, thunks: ~[]}
     }
 
     pub fn create(f: &fn(&mut Lazy<T>)) -> Lazy<T> {
