@@ -33,29 +33,13 @@ impl<T: Owned + Shrink> Shrink for ~T {
 
 impl Shrink for u8 {
     fn shrink(&self) -> Lazy<u8> {
-        do Lazy::create |L| {
-            let n = *self;
-            if n > 0 {
-                L.push(0);
-            }
-            if n == 2 {
-                L.push(1);
-            }
-            if n > 8 {
-                do L.push_thunk(n) |n, list| {
-                    list.push(n/2);
-                    list.push(n - n/4);
-                    list.push(n - n/8);
-                }
-            }
-            if n > 2 {
-                do L.push_thunk(n) |n, L| {
-                    L.push(n-3);
-                    L.push(n-2);
-                    L.push(n-1);
-                }
-            }
-        }
+        Lazy::new_from(match *self {
+            0 => ~[],
+            1 => ~[0],
+            2 => ~[0, 1],
+            n @ 3 .. 8 => ~[n-3, n-2, n-1],
+            n => ~[n/2, n - n/4, n - n/8, n - 5, n - 2, n - 1],
+        })
     }
 }
 

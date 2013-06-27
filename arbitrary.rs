@@ -20,7 +20,6 @@ pub trait Arbitrary {
      parameter.
      */
     fn arbitrary(uint) -> Self;
-
 }
 
 /// Create an arbitrary value of type T

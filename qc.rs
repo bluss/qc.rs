@@ -19,7 +19,7 @@ Example::
 
 Issues:
 
-* Figure out a way to generate shrinks lazily in trait Arbitrary, in a composable way.
+* Clean up Lazy and Shrink, implement Arbitrary and Shrink further
 
 ---
 
