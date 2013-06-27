@@ -1,5 +1,16 @@
 // vim: sts=4 sw=4 et
 
+/*!
+ Lazy is a Lazily generated list, only iterable once, implementing Iterable.
+
+ It allows lazy generation by allowing generators to tack on thunks of closures
+ that are not called until the list is traversed to that point.
+
+ Uses a custom ~Thunk and ~Callable to allow movingi in and then mutating values in
+ the closure.
+ */
+
+/// Lazily generated list, only iterable once
 pub struct Lazy<T> {
     priv head: ~[T],
     priv thunks: ~[~Callable<Lazy<T>>],
@@ -47,15 +58,19 @@ impl<T> Lazy<T> {
         }
     }
 
+    /// push a value to the end of the Lazy.
     pub fn push(&mut self, x: T) {
         self.head.push(x);
     }
 
+    /// push a thunk to the end of the thunk list of lazy.
+    /// ordered after all immediate push values.
     pub fn push_thunk<A: Owned>(&mut self, x: A, f: ~fn(A, &mut Lazy<T>)) {
         let t = ~Thunk { value: x, f: f};
         self.thunks.push(t as ~Callable<Lazy<T>>)
     }
-    /* lazily map from `a` using function `f`, appending the results to self */
+
+    /// lazily map from the iterator `a` using function `f`, appending the results to self
     pub fn push_map<A, J: Owned + Iterator<A>>(&mut self, a: J, f: ~fn(A) -> T) {
         do self.push_thunk((f, a)) |mut (f, a), L| {
             match a.next() {
