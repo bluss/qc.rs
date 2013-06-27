@@ -23,8 +23,6 @@ Issues:
 
 ---
 
-Copyright x, 2013
-
 Copyright License for qc.rs is identical with the Rust project:
 
 '''
