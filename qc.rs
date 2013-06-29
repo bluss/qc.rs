@@ -165,7 +165,7 @@ pub macro_rules! quick_check(
 
 pub macro_rules! quick_check_occurs(
     ($qc_property:expr) => (
-        quick_check_occurs!(config.trials(config.trials * 4), $qc_property)
+        quick_check_occurs!(config, $qc_property)
     );
     ($qc_config:expr, $qc_property:expr) => ({
         quick_check_occurs($qc_config,
