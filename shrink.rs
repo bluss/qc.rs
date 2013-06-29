@@ -3,6 +3,8 @@
 use lazy::Lazy;
 use super::std;
 
+use std::cell::Cell;
+
 /**
  The Shrink trait is used when trying to reduce a testcase to a minimal testcase.
  Shrink should generate "simpler" values, the simplest first.
@@ -20,6 +22,8 @@ impl Shrink for char {}
 impl Shrink for float {}
 impl Shrink for i8 {}
 impl Shrink for int {}
+impl<T> Shrink for @T {}
+impl<T> Shrink for @mut T {}
 
 fn mpowers_of_two<T: Num + Ord>(n: T) -> ~[T] {
     /* generate ~[0, n/2, n - n/4, n - n/8, n - n/16, .., n - 1] */
@@ -122,6 +126,28 @@ impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     }
 }
 
+impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Result<T, U> {
+    fn shrink(&self) -> Lazy<Result<T, U>> {
+        do Lazy::create |L| {
+            match *self {
+                Ok(ref x) => L.push_map(x.shrink(), |y| Ok(y)),
+                Err(ref x) => L.push_map(x.shrink(), |y| Err(y)),
+            }
+        }
+    }
+}
+
+impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Either<T, U> {
+    fn shrink(&self) -> Lazy<Either<T, U>> {
+        do Lazy::create |L| {
+            match *self {
+                Left(ref x) => L.push_map(x.shrink(), |y| Left(y)),
+                Right(ref x) => L.push_map(x.shrink(), |y| Right(y)),
+            }
+        }
+    }
+}
+
 impl<T: Owned + Shrink> Shrink for ~T {
     fn shrink(&self) -> Lazy<~T> {
         do Lazy::create |L| {
@@ -185,3 +211,15 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
     }
 }
 
+
+impl<T: Owned + Clone + Shrink> Shrink for Cell<T> {
+    fn shrink(&self) -> Lazy<Cell<T>> {
+        do Lazy::create |L| {
+            if !self.is_empty() {
+                let v = self.with_ref(|x| x.clone());
+                L.push(Cell::new_empty());
+                L.push_map(v.shrink(), |y| Cell::new(y));
+            }
+        }
+    }
+}

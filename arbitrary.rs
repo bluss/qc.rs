@@ -4,6 +4,7 @@
 use super::std;
 use super::std::rand::{Rand, RngUtil};
 
+use std::cell::Cell;
 /* Arbitrary */
 
 /**
@@ -109,9 +110,17 @@ impl<T: Rand> Arbitrary for Random<T> {
 
 impl<T: Arbitrary> Arbitrary for ~T {
     #[inline]
-    fn arbitrary(sz: uint) -> ~T {
-        ~arbitrary(sz)
-    }
+    fn arbitrary(sz: uint) -> ~T { ~arbitrary(sz) }
+}
+
+impl<T: Arbitrary> Arbitrary for @T {
+    #[inline]
+    fn arbitrary(sz: uint) -> @T { @arbitrary(sz) }
+}
+
+impl<T: Arbitrary> Arbitrary for @mut T {
+    #[inline]
+    fn arbitrary(sz: uint) -> @mut T { @mut arbitrary(sz) }
 }
 
 impl Arbitrary for u8 {
@@ -153,10 +162,30 @@ impl<T: Arbitrary, U: Arbitrary> Arbitrary for Result<T, U> {
     }
 }
 
+impl<T: Arbitrary, U: Arbitrary> Arbitrary for Either<T, U> {
+    fn arbitrary(sz: uint) -> Either<T, U> {
+        if std::rand::random() {
+            Left(arbitrary(sz))
+        } else {
+            Right(arbitrary(sz))
+        }
+    }
+}
+
 impl Arbitrary for ~str {
     fn arbitrary(sz: uint) -> ~str {
         let rng = &mut *std::rand::task_rng();
         let n = small_n(sz);
         rng.gen_str(n)
+    }
+}
+
+impl <T: Arbitrary> Arbitrary for Cell<T> {
+    fn arbitrary(sz: uint) -> Cell<T> {
+        if std::rand::random() {
+            Cell::new(arbitrary(sz))
+        } else {
+            Cell::new_empty()
+        }
     }
 }

@@ -332,6 +332,25 @@ fn test_qc_shrink() {
 }
 
 #[test]
+fn test_qc_shrink_containers() {
+    let shrink: Either<~str, int> = quick_shrink(config, Left(~"xyz"), |_| false);
+    assert_eq!(shrink, Left(~""));
+    let shrink: Either<int, ~str> = quick_shrink(config, Right(~"xyz"), |_| false);
+    assert_eq!(shrink, Right(~""));
+
+    let shrink: Result<~str, int> = quick_shrink(config, Ok(~"xyz"), |_| false);
+    assert_eq!(shrink, Ok(~""));
+
+    /* @T does not change */
+    let shrink = quick_shrink(config, @1,  |_| false);
+    assert_eq!(shrink, @1);
+
+    /* @T does not change */
+    let shrink = quick_shrink(config, std::cell::Cell::new((@1, ~[1,2,3])),  |x| x.is_empty());
+    assert_eq!(shrink, std::cell::Cell::new((@1, ~[])));
+}
+
+#[test]
 #[should_fail]
 fn test_qc_tree() {
     quick_check!(config.size(7),
@@ -373,6 +392,18 @@ fn test_qc_containers() {
     quick_check_occurs!(config.size(100), |v: ~[u8]| v.len() > 100);
 
     quick_check!(|s: ~str| s.is_ascii());
+
+    quick_check_occurs!(|s: Either<u8,u8>| match s { Left(*) => true, _ => false });
+    quick_check_occurs!(|s: Either<u8,u8>| match s { Right(*) => true, _ => false });
+    quick_check_occurs!(|s: Either<Option<int>,u8>| match s { Left(Some(*)) => true, _ => false });
+
+    quick_check_occurs!(|s: Result<u8,u8>| match s { Ok(*) => true, _ => false });
+    quick_check_occurs!(|s: Result<u8,u8>| match s { Err(*) => true, _ => false });
+
+    quick_check_occurs!(|(a, b, c): (@bool, @mut bool, ~bool)| *a && *b && *c);
+
+    quick_check_occurs!(|m: std::cell::Cell<~str>| m.is_empty());
+    quick_check_occurs!(|m: std::cell::Cell<@mut int>| !m.is_empty());
 }
 
 #[test]
