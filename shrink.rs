@@ -55,16 +55,14 @@ impl Shrink for uint {
 }
 
 macro_rules! shrink_tuple(
-    ($($T:ident),+ -> $U:pat-> $($S:expr),+) => (
+    ($($T:ident),+ -> $($S:expr),+) => (
     impl<$($T: Owned + Clone + Shrink),+> Shrink for ($($T),+) {
         fn shrink(&self) -> Lazy<($($T),+)> {
             do Lazy::create |L| {
                 match self {
                     &($(ref $T),+) => {
                         $(
-                            match self.clone() {
-                                $U => L.push_map($T.shrink(), |s| $S)
-                            }
+                            L.push_map_env($T.shrink(), self.clone(), |s, t| $S);
                         )+
                     }
                 }
@@ -74,45 +72,41 @@ macro_rules! shrink_tuple(
     )
 )
 
+
 shrink_tuple!(
     A, B ->
-    (a, b) ->
-    (s, b.clone()),
-    (a.clone(), s))
+    (s, t.n1().clone()),
+    (t.n0().clone(), s))
 
 shrink_tuple!(
     A, B, C ->
-    (a, b, c) ->
-    (s, b.clone(), c.clone()),
-    (a.clone(), s, c.clone()),
-    (a.clone(), b.clone(), s))
+    (s, t.n1().clone(), t.n2().clone()),
+    (t.n0().clone(), s, t.n2().clone()),
+    (t.n0().clone(), t.n1().clone(), s))
 
 shrink_tuple!(
     A, B, C, D ->
-    (a, b, c, d) ->
-    (s, b.clone(), c.clone(), d.clone()),
-    (a.clone(), s, c.clone(), d.clone()),
-    (a.clone(), b.clone(), s, d.clone()),
-    (a.clone(), b.clone(), c.clone(), s))
+    (s, t.n1().clone(), t.n2().clone(), t.n3().clone()),
+    (t.n0().clone(), s, t.n2().clone(), t.n3().clone()),
+    (t.n0().clone(), t.n1().clone(), s, t.n3().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s))
 
 shrink_tuple!(
     A, B, C, D, E ->
-    (a, b, c, d, e) ->
-    (s, b.clone(), c.clone(), d.clone(), e.clone()),
-    (a.clone(), s, c.clone(), d.clone(), e.clone()),
-    (a.clone(), b.clone(), s, d.clone(), e.clone()),
-    (a.clone(), b.clone(), c.clone(), s, e.clone()),
-    (a.clone(), b.clone(), c.clone(), d.clone(), s))
+    (s, t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone()),
+    (t.n0().clone(), s, t.n2().clone(), t.n3().clone(), t.n4().clone()),
+    (t.n0().clone(), t.n1().clone(), s, t.n3().clone(), t.n4().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s, t.n4().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), s))
 
 shrink_tuple!(
     A, B, C, D, E, F ->
-    (a, b, c, d, e, f) ->
-    (s, b.clone(), c.clone(), d.clone(), e.clone(), f.clone()),
-    (a.clone(), s, c.clone(), d.clone(), e.clone(), f.clone()),
-    (a.clone(), b.clone(), s, d.clone(), e.clone(), f.clone()),
-    (a.clone(), b.clone(), c.clone(), s, e.clone(), f.clone()),
-    (a.clone(), b.clone(), c.clone(), d.clone(), s, f.clone()),
-    (a.clone(), b.clone(), c.clone(), d.clone(), e.clone(), s))
+    (s, t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone(), t.n5().clone()),
+    (t.n0().clone(), s, t.n2().clone(), t.n3().clone(), t.n4().clone(), t.n5().clone()),
+    (t.n0().clone(), t.n1().clone(), s, t.n3().clone(), t.n4().clone(), t.n5().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s, t.n4().clone(), t.n5().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), s, t.n5().clone()),
+    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone(), s))
 
 impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
@@ -177,7 +171,7 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
                         L.push(v1);
                         /* shrink one at a time */
                         do L.push_thunk((index, v)) |(index, v), L| {
-                            do L.push_map(v[index].shrink()) |selt| {
+                            do L.push_map_env(v[index].shrink(), (index, v)) |selt, &(index, v)| {
                                 let mut v1 = v.clone();
                                 v1[index] = selt;
                                 v1
