@@ -1,16 +1,19 @@
 // vim: sts=4 sw=4 et
 
 /*!
- Lazy is a Lazily generated list, only iterable once, implementing Iterable.
+ Lazy is a Lazily generated sequence, only traversable once, implementing Iterator.
 
  It allows lazy generation by allowing generators to tack on thunks of closures
  that are not called until the list is traversed to that point.
 
- Uses a custom ~Thunk and ~Callable to allow movingi in and then mutating values in
+ Only has list structure if all thunks are nested inside each other. Otherwise it is
+ more like a tree.
+
+ Uses a custom ~Thunk and ~Callable to allow moving in and then mutating values in
  the closure.
  */
 
-/// Lazily generated list, only iterable once
+/// Lazily generated sequence, only traversable once
 pub struct Lazy<T> {
     priv head: ~[T],
     priv thunks: ~[~Callable<Lazy<T>>],
