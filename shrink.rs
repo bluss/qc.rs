@@ -176,7 +176,7 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
 
         L.push(~[]);
 
-        do L.push_thunk(self.clone()) |v, L| {
+        do L.push_thunk(self.clone()) |L, v| {
             if v.len() > 2 {
                 /* splitting a vec is awkward with Clone .. */
                 L.push(
@@ -188,15 +188,15 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
                     v1
                 })
             }
-            do L.push_thunk(v) |v, L| {
+            do L.push_thunk(v) |L, v| {
                 for std::uint::range(0, v.len()) |index| {
                     /* remove one at a time */
-                    do L.push_thunk((index, v.clone())) |(index, v), L| {
+                    do L.push_thunk((index, v.clone())) |L, (index, v)| {
                         let mut v1 = v.clone();
                         v1.remove(index);
                         L.push(v1);
                         /* shrink one at a time */
-                        do L.push_thunk((index, v)) |(index, v), L| {
+                        do L.push_thunk((index, v)) |L, (index, v)| {
                             do L.push_map_env(v[index].shrink(), (index, v)) |selt, &(index, v)| {
                                 let mut v1 = v.clone();
                                 v1[index] = selt;
