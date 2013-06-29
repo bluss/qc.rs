@@ -303,12 +303,6 @@ fn test_qc_shrink() {
     let shrink = quick_shrink(config, s, |_| false);
     assert_eq!(shrink, ~[]);
 
-/*
-    let s = NonEmptyVec(~[0, 1, 1, 2, 1, 0, 1, 0, 1]);
-    let shrink = quick_shrink(config, s, |_| false);
-    assert_eq!(shrink.len(), 1);
-    */
-
     /* Make sure we can shrink nested containers */
     let v = Some(~[Some(~"hi"), None, Some(~""), Some(~"long text from me")]);
     let shrink = quick_shrink(config, v, |_| false);
@@ -372,13 +366,13 @@ fn test_qc_random() {
 
 #[test]
 fn test_qc_containers() {
-    /*
-    quick_check!(|v: NonEmptyVec<u8>| v.len() > 0);
-    */
+    quick_check_occurs!(|s: Option<int>| s.is_none());
+    quick_check_occurs!(|s: Option<int>| s.is_some());
 
     quick_check_occurs!(|v: ~[u8]| v.len() == 0);
     quick_check_occurs!(|v: ~[u8]| v.len() == 1);
     quick_check_occurs!(|v: ~[u8]| v.len() > 10);
+    quick_check_occurs!(config.size(100), |v: ~[u8]| v.len() > 100);
 
     quick_check!(|s: ~str| s.is_ascii());
 
@@ -419,7 +413,6 @@ fn test_str() {
 fn test_random_stuff() {
     quick_check!(|v: ~[int]| { (v.head_opt().is_some()) == (v.len() > 0) });
     quick_check!(|v: ~[~str]| v.head_opt() == v.iter().next());
-    //quick_check!(|v: NonEmptyVec<float>| v.iter().max().is_some());
 
 /*
     quick_check!(|(v, n): (~[i8], SmallN)| {

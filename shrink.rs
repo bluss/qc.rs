@@ -21,15 +21,6 @@ impl Shrink for float {}
 impl Shrink for i8 {}
 impl Shrink for int {}
 
-impl<T: Owned + Shrink> Shrink for ~T {
-    /* FIXME: This impl causes crashes? */
-    fn shrink(&self) -> Lazy<~T> {
-        do Lazy::create |L| {
-            L.push_map((**self).shrink(), |u| ~u);
-        }
-    }
-}
-
 fn mpowers_of_two<T: Num + Ord>(n: T) -> ~[T] {
     /* generate ~[0, n/2, n - n/4, n - n/8, n - n/16, .., n - 1] */
     use std::num::One;
@@ -117,6 +108,15 @@ impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
                     L.push_map(x.shrink(), |y| Some(y));
                 }
             }
+        }
+    }
+}
+
+impl<T: Owned + Shrink> Shrink for ~T {
+    /* FIXME: This impl causes crashes? */
+    fn shrink(&self) -> Lazy<~T> {
+        do Lazy::create |L| {
+            L.push_map((**self).shrink(), |u| ~u);
         }
     }
 }

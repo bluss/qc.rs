@@ -35,10 +35,6 @@ pub struct Random<T>(T);
 #[deriving(IterBytes, Eq, Clone)]
 pub struct Unicode(~str);
 
-/// Like ~[T] but never empty
-#[deriving(Eq, Clone)]
-pub struct NonEmptyVec<T>(~[T]);
-
 /// A small number >= 0.
 #[deriving(Eq, Clone)]
 pub struct SmallN(uint);
@@ -190,16 +186,6 @@ impl<T: Arbitrary, U: Arbitrary> Arbitrary for Result<T, U> {
             Err(arbitrary(sz))
         }
     }
-}
-
-
-
-impl<T: Clone + Arbitrary> Arbitrary for NonEmptyVec<T> {
-    fn arbitrary(sz: uint) -> NonEmptyVec<T> {
-        let n = 1 + small_n(sz);
-        NonEmptyVec(arbiter::<T>(n, sz).collect())
-    }
-
 }
 
 impl Arbitrary for ~str {
