@@ -98,7 +98,7 @@ impl QConfig {
  
  NOTE: `A` must implement `Clone`.
  */
-pub fn quick_check<A: Owned + Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop: &fn(A) -> bool) {
+pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop: &fn(A) -> bool) {
     for std::uint::range(0, cfg.trials) |i| {
         let value = arbitrary::<A>(cfg.size + if cfg.grow { i / 8 } else { 0 });
         if cfg.verbose {
@@ -118,7 +118,7 @@ pub fn quick_check<A: Owned + Clone + Shrink + Arbitrary>(name: &str, cfg: QConf
     }
 }
 
-pub fn quick_shrink<A: Owned + Clone + Shrink + Arbitrary>(cfg: QConfig, value: A, prop: &fn(A) -> bool) -> A {
+pub fn quick_shrink<A: Clone + Shrink>(cfg: QConfig, value: A, prop: &fn(A) -> bool) -> A {
     //assert!(!prop(value.clone()));
     let mut shrinks = value.shrink();
     for shrinks.advance |elt| {
