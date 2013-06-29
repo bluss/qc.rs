@@ -55,14 +55,14 @@ pub struct QConfig {
 }
 
 /** Default config value */
-pub static config: QConfig = QConfig{ trials: 25, size: 8, verbose: false, grow: true };
+pub static config: QConfig = QConfig{ trials: 50, size: 8, verbose: false, grow: true };
 
 impl QConfig {
     /// Set size factor (default 8)
     pub fn size(self, x: uint) -> QConfig {
         QConfig{size: x, ..self}
     }
-    /// Set n trials (default 25)
+    /// Set n trials (default 50)
     pub fn trials(self, x: uint) -> QConfig {
         QConfig{trials: x, ..self}
     }
@@ -357,7 +357,7 @@ fn test_qc_shrink() {
 #[test]
 #[should_fail]
 fn test_qc_tree() {
-    quick_check!(config.size(4).verbose(true),
+    quick_check!(config.size(7),
         |u: UserTree<u8>| match u {
             Node(x, ~Node(y, _, _), ~Nil) => (x ^ y) & 0x13 == 0,
             _ => true,
@@ -370,7 +370,7 @@ fn test_qc_tree() {
 #[test]
 #[should_fail]
 fn test_qc_shrink_fail() {
-    quick_check!(config.verbose(true).trials(100),
+    quick_check!(config.verbose(false).trials(100),
         |(a, b): (~str, ~str)| !(a.contains_char('e') || b.contains_char('e')));
 }
 
