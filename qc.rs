@@ -39,7 +39,7 @@ according to those terms.
 
 use lazy::Lazy;
 use shrink::Shrink;
-use arbitrary::{Arbitrary, arbitrary, SmallN, Unicode};
+use arbitrary::{Arbitrary, arbitrary, SmallN};
 
 
 mod lazy;
@@ -373,9 +373,6 @@ fn test_qc_containers() {
     quick_check_occurs!(config.size(100), |v: ~[u8]| v.len() > 100);
 
     quick_check!(|s: ~str| s.is_ascii());
-
-    quick_check_occurs!(|s: Unicode| s.len() > 0 && s.is_ascii());
-    quick_check_occurs!(|s: Unicode| !s.is_ascii());
 }
 
 #[test]

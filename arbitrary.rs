@@ -2,8 +2,7 @@
 
 
 use super::std;
-use super::std::hashmap::HashMap;
-use super::std::rand::{Rand, Rng, RngUtil};
+use super::std::rand::{Rand, RngUtil};
 
 /* Arbitrary */
 
@@ -32,9 +31,6 @@ pub fn arbitrary<T: Arbitrary>(sz: uint) -> T {
 #[deriving(IterBytes, Eq, Clone)]
 pub struct Random<T>(T);
 
-#[deriving(IterBytes, Eq, Clone)]
-pub struct Unicode(~str);
-
 /// A small number >= 0.
 #[deriving(Eq, Clone)]
 pub struct SmallN(uint);
@@ -45,19 +41,6 @@ fn small_n(size: uint) -> uint {
     n.min(&(16 * size))
 }
 
-fn gen_unicode_str<R: Rng>(rng: &mut R, len: uint) -> ~str {
-    let text = ~"\
-a b c 0 $ ⇌ [ˈʏpsilɔn] \\ \" ‚dsch‘ „füh“      ‡ € ⁿ ２ � 🈘
-ἀπὸ состоится ทรงนับถือขันทีเป็นที่พึ่ง Hello world Καλημέρα κόσμε コンニチハ";
-    let mut res = ~"";
-    let mut words: ~[&str] = text.word_iter().collect();
-    words.push_all([" ", " ", "\n"]);
-    while res.len() < len {
-        res += rng.choose(words);
-    }
-    res
-}
-
 /* Helper: Iter */
 #[deriving(Clone)]
 priv struct Iter<T> {
@@ -65,8 +48,8 @@ priv struct Iter<T> {
     size: uint,
 }
 
-fn arbiter<T: Arbitrary>(count: uint, sz: uint) -> Iter<T> {
-    Iter{count: count, size: sz }
+fn arbiter<T>(sz: uint) -> Iter<T> {
+    Iter{count: small_n(sz), size: sz }
 }
 
 impl<T: Arbitrary> Iterator<T> for Iter<T> {
@@ -143,9 +126,9 @@ impl Arbitrary for SmallN {
     }
 }
 
-impl<T: Clone + Arbitrary> Arbitrary for ~[T] {
+impl<T: Arbitrary> Arbitrary for ~[T] {
     fn arbitrary(sz: uint) -> ~[T] {
-        arbiter::<T>(small_n(sz), sz).collect()
+        arbiter::<T>(sz).collect()
     }
 }
 
@@ -175,24 +158,5 @@ impl Arbitrary for ~str {
         let rng = &mut *std::rand::task_rng();
         let n = small_n(sz);
         rng.gen_str(n)
-    }
-}
-
-impl Arbitrary for Unicode {
-    fn arbitrary(sz: uint) -> Unicode {
-        let rng = &mut *std::rand::task_rng();
-        let n = small_n(sz);
-        Unicode(gen_unicode_str(rng, n))
-    }
-}
-
-impl<K: Arbitrary + Eq + Hash, V: Arbitrary> Arbitrary for HashMap<K, V> {
-    fn arbitrary(sz: uint) -> HashMap<K, V> {
-        let n: uint = small_n(sz);
-        let mut v = HashMap::new();
-        for n.times {
-            v.insert(arbitrary(sz), arbitrary(sz));
-        }
-        v
     }
 }
