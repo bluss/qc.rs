@@ -119,7 +119,6 @@ pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop
 }
 
 pub fn quick_shrink<A: Clone + Shrink>(cfg: QConfig, value: A, prop: &fn(A) -> bool) -> A {
-    //assert!(!prop(value.clone()));
     let mut shrinks = value.shrink();
     for shrinks.advance |elt| {
         let elt_cpy = elt.clone();
@@ -173,26 +172,6 @@ pub macro_rules! quick_check_occurs(
     })
 )
 
-/// Example of how to implement Arbitrary
-#[deriving(Clone)]
-enum UserType<T> {
-    Nothing,
-    Blob(int, ~str),
-    Blub(~[T]),
-}
-
-impl<T: Clone + Arbitrary> Arbitrary for UserType<T> {
-    fn arbitrary(sz: uint) -> UserType<T> {
-        let x: u8 = std::rand::random();
-        match x % 3 {
-            0 => Nothing,
-            1 => Blob(arbitrary(sz), arbitrary(sz)),
-            _ => Blub(arbitrary(sz)),
-        }
-    }
-
-}
-
 impl Shrink for SmallN {
     fn shrink(&self) -> Lazy<SmallN> {
         do Lazy::create |L| {
@@ -219,6 +198,7 @@ impl<T: Clone + Arbitrary> Arbitrary for UserTree<T> {
     }
 }
 
+/// Simply dispatch to re-use the shrink implementation on tuples
 impl<T: Owned + Clone + Shrink> Shrink for UserTree<T> {
     fn shrink(&self) -> Lazy<UserTree<T>> {
         do Lazy::create |L| {
@@ -345,9 +325,8 @@ fn test_qc_shrink_containers() {
     let shrink = quick_shrink(config, @1,  |_| false);
     assert_eq!(shrink, @1);
 
-    /* @T does not change */
-    let shrink = quick_shrink(config, std::cell::Cell::new((@1, ~[1,2,3])),  |x| x.is_empty());
-    assert_eq!(shrink, std::cell::Cell::new((@1, ~[])));
+    let shrink = quick_shrink(config, std::cell::Cell::new((@mut 1, ~[1,2,3])),  |x| x.is_empty());
+    assert_eq!(shrink, std::cell::Cell::new((@mut 1, ~[])));
 }
 
 #[test]
@@ -358,9 +337,6 @@ fn test_qc_tree() {
             Node(x, ~Node(y, _, _), ~Nil) => (x ^ y) & 0x13 == 0,
             _ => true,
         });
-    /* crashing..
-    fail!("missing test");
-    */
 }
 
 #[test]
@@ -373,13 +349,6 @@ fn test_qc_shrink_fail() {
 
 #[deriving(Rand, Clone)]
 struct Test_Foo { x: float, u: int }
-
-#[test]
-fn test_qc_random() {
-    /*
-    quick_check!(|_: Random<Test_Foo>| true);
-    */
-}
 
 #[test]
 fn test_qc_containers() {
@@ -436,12 +405,6 @@ fn test_str() {
 fn test_random_stuff() {
     quick_check!(|v: ~[int]| { (v.head_opt().is_some()) == (v.len() > 0) });
     quick_check!(|v: ~[~str]| v.head_opt() == v.iter().next());
-
-    /*
-    quick_check!(|(v, n): (~[i8], SmallN)| {
-        v.iter().take_(*n).len_() == v.len().min(&*n)
-    });
-    */
 
     quick_check!(|v: ~[Option<i8>]| { v == v.iter().transform(|&elt| elt).collect() });
 
