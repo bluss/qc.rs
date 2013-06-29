@@ -77,13 +77,30 @@ impl<T> Lazy<T> {
     }
 
     /// lazily map from the iterator `a` using function `f`, appending the results to self
-    pub fn push_map<A, J: Owned + Iterator<A>>(&mut self, a: J, f: ~fn(A) -> T) {
-        do self.push_thunk((f, a)) |mut (f, a), L| {
-            match a.next() {
+    /// Static function without environment
+    pub fn push_map<A, J: Owned + Iterator<A>>(&mut self, it: J, f: &'static fn:Owned(A) -> T) {
+        let f_stat = fn_unwrap_2(f);
+        do self.push_thunk((f_stat, it)) |mut (f, it), L| {
+            match it.next() {
                 None => {}
                 Some(x) => {
                     L.push(f(x));
-                    L.push_map(a, f);
+                    L.push_map(it, f);
+                }
+            }
+        }
+    }
+
+    /// Static function with ref to supplied environment
+    pub fn push_map_env<A, J: Owned + Iterator<A>, Env: Owned>
+            (&mut self, it: J, env: Env, f: &'static fn:Owned(A, &mut Env) -> T) {
+        let f_stat = fn_unwrap(f);
+        do self.push_thunk((f_stat, it, env)) |mut (f, it, env), L| {
+            match it.next() {
+                None => {}
+                Some(x) => {
+                    L.push(f(x, &mut env));
+                    L.push_map_env(it, env, f);
                 }
             }
         }
@@ -94,10 +111,19 @@ impl<T> Iterator<T> for Lazy<T> {
     fn next(&mut self) -> Option<T> { self.next() }
 }
 
+
+/* Workaround &'static fn() not being Owned/Sendable */
 fn fn_unwrap<A, B, C>(f: &'static fn:Owned(A, &mut C) -> B) -> extern fn(A, &mut C) -> B {
     /* this is "safe" */
     unsafe {
         let (f, _): (extern fn(A, &mut C) -> B, *()) = ::std::cast::transmute(f);
+        f
+    }
+}
+fn fn_unwrap_2<A, B>(f: &'static fn:Owned(A) -> B) -> extern fn(A) -> B {
+    /* this is "safe" */
+    unsafe {
+        let (f, _): (extern fn(A) -> B, *()) = ::std::cast::transmute(f);
         f
     }
 }
