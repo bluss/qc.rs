@@ -200,26 +200,7 @@ macro_rules! push(
 impl Shrink for SmallN {
     fn shrink(&self) -> Lazy<SmallN> {
         do Lazy::create |L| {
-            match **self {
-                0 => {},
-                1 => push!(L, 0),
-                2 => { push!(L, 0); push!(L, 1) },
-                n @ 3 .. 8 => {
-                    push!(L, n-3);
-                    push!(L, n-2);
-                    push!(L, n-1);
-                },
-                n => {
-                    push!(L, 0); 
-                    push!(L, n/2);
-                    do L.push_thunk(n) |n, L| {
-                        push!(L, n - n/4);
-                        push!(L, n - n/8);
-                        push!(L, n-2);
-                        push!(L, n-1);
-                    }
-                }
-            }
+            L.push_map((**self).shrink(), |x| SmallN(x));
         }
     }
 }
@@ -313,6 +294,10 @@ fn test_qc_shrink() {
     let v = SmallN(100);
     let shrink = quick_shrink(config, v, |_| false);
     assert_eq!(*shrink, 0);
+
+    let v = 20000000u;
+    let shrink = quick_shrink(config, v, |x| x < 1200301);
+    assert_eq!(shrink, 1200301);
 
     let s = ~[0, 1, 1, 2, 1, 0, 1, 0, 1];
     let shrink = quick_shrink(config, s, |_| false);

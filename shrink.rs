@@ -16,11 +16,10 @@ pub trait Shrink {
 
 impl Shrink for () {}
 impl Shrink for bool {}
-impl Shrink for int {}
-impl Shrink for uint {}
-impl Shrink for float {}
 impl Shrink for char {}
+impl Shrink for float {}
 impl Shrink for i8 {}
+impl Shrink for int {}
 
 impl<T: Owned + Shrink> Shrink for ~T {
     /* FIXME: This impl causes crashes? */
@@ -31,16 +30,37 @@ impl<T: Owned + Shrink> Shrink for ~T {
     }
 }
 
-impl Shrink for u8 {
-    fn shrink(&self) -> Lazy<u8> {
-        Lazy::new_from(match *self {
+fn mpowers_of_two<T: Num + Ord>(n: T) -> ~[T] {
+    /* generate ~[0, n/2, n - n/4, n - n/8, n - n/16, .., n - 1] */
+    use std::num::One;
+    let mut ret = ~[std::num::Zero::zero()];
+    let two = One::one::<T>() + One::one();
+    let mut div = One::one::<T>() + One::one();
+    /* check for end or overflow */
+    while div < n && div >= two{
+        let next = n/div;
+        ret.push(n - next);
+        div = div * two;
+    }
+    ret
+}
+
+macro_rules! shrink_uint(
+    ($x:expr) => (match $x {
             0 => ~[],
             1 => ~[0],
             2 => ~[0, 1],
             n @ 3 .. 8 => ~[n-3, n-2, n-1],
-            n => ~[n/2, n - n/4, n - n/8, n - 5, n - 2, n - 1],
-        })
-    }
+            n => mpowers_of_two(n),
+    })
+)
+
+impl Shrink for u8 {
+    fn shrink(&self) -> Lazy<u8> { Lazy::new_from(shrink_uint!(*self)) }
+}
+
+impl Shrink for uint {
+    fn shrink(&self) -> Lazy<uint> { Lazy::new_from(shrink_uint!(*self)) }
 }
 
 macro_rules! shrink_tuple(
