@@ -11,6 +11,9 @@
 
  Uses a custom ~Thunk and ~Callable to allow moving in and then mutating values in
  the closure.
+
+
+ This library was first implemented using ~fn but I switched to extern fn.
  */
 
 /// Lazily generated sequence, only traversable once
@@ -25,7 +28,7 @@ trait Callable<T> {
 
 struct Thunk<A, B> {
     value: A,
-    f: ~fn(A, &mut B),
+    f: extern fn(A, &mut B),
 }
 
 impl<A, B> Callable<B> for Thunk<A, B> {
@@ -68,8 +71,8 @@ impl<T> Lazy<T> {
 
     /// push a thunk to the end of the thunk list of lazy.
     /// ordered after all immediate push values.
-    pub fn push_thunk<A: Owned>(&mut self, x: A, f: ~fn(A, &mut Lazy<T>)) {
-        let t = ~Thunk { value: x, f: f};
+    pub fn push_thunk<A: Owned>(&mut self, x: A, f: &'static fn:Owned(A, &mut Lazy<T>)) {
+        let t = ~Thunk { value: x, f: fn_unwrap(f) };
         self.thunks.push(t as ~Callable<Lazy<T>>)
     }
 
@@ -91,11 +94,19 @@ impl<T> Iterator<T> for Lazy<T> {
     fn next(&mut self) -> Option<T> { self.next() }
 }
 
+fn fn_unwrap<A, B, C>(f: &'static fn:Owned(A, &mut C) -> B) -> extern fn(A, &mut C) -> B {
+    /* this is "safe" */
+    unsafe {
+        let (f, _): (extern fn(A, &mut C) -> B, *()) = ::std::cast::transmute(f);
+        f
+    }
+}
+
 #[test]
 fn test_lazy_list() {
     let mut L = do Lazy::create |L| {
         L.push(3);
-        do L.push_thunk(~[4,5]) |mut v, L| {
+        do L.push_thunk(~[4, 5]) |mut v, L| {
             L.push(v.shift());
             do L.push_thunk(v) |mut v, L| {
                 L.push(v.shift());
@@ -107,4 +118,11 @@ fn test_lazy_list() {
     assert_eq!(L.next(), Some(4));
     assert_eq!(L.next(), Some(5));
     assert_eq!(L.next(), None);
+
+    let mut M = Lazy::new();
+    M.push_map(Lazy::new_from(~[3,4,5]), |x| (x, 1));
+    assert_eq!(M.next(), Some((3,1)));
+    assert_eq!(M.next(), Some((4,1)));
+    assert_eq!(M.next(), Some((5,1)));
+    assert_eq!(M.next(), None);
 }

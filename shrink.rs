@@ -171,12 +171,12 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
             do L.push_thunk(v) |v, L| {
                 for std::uint::range(0, v.len()) |index| {
                     /* remove one at a time */
-                    do L.push_thunk(v.clone()) |v, L| {
+                    do L.push_thunk((index, v.clone())) |(index, v), L| {
                         let mut v1 = v.clone();
                         v1.remove(index);
                         L.push(v1);
                         /* shrink one at a time */
-                        do L.push_thunk(v) |v, L| {
+                        do L.push_thunk((index, v)) |(index, v), L| {
                             do L.push_map(v[index].shrink()) |selt| {
                                 let mut v1 = v.clone();
                                 v1[index] = selt;
