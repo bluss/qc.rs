@@ -77,7 +77,7 @@ impl<T> Lazy<T> {
     pub fn push_map<A, J: Owned + Iterator<A>>(&mut self, a: J, f: ~fn(A) -> T) {
         do self.push_thunk((f, a)) |mut (f, a), L| {
             match a.next() {
-                None => {},
+                None => {}
                 Some(x) => {
                     L.push(f(x));
                     L.push_map(a, f);

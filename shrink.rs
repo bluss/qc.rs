@@ -118,7 +118,7 @@ impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
         do Lazy::create |L| {
             match *self {
-                None => {},
+                None => {}
                 Some(ref x) => {
                     L.push(None);
                     L.push_map(x.shrink(), |y| Some(y));

@@ -193,10 +193,6 @@ impl<T: Clone + Arbitrary> Arbitrary for UserType<T> {
 
 }
 
-macro_rules! push(
-    ($L:expr, $N:expr) => (($L).push(SmallN($N)));
-)
-
 impl Shrink for SmallN {
     fn shrink(&self) -> Lazy<SmallN> {
         do Lazy::create |L| {
@@ -227,7 +223,7 @@ impl<T: Owned + Clone + Shrink> Shrink for UserTree<T> {
     fn shrink(&self) -> Lazy<UserTree<T>> {
         do Lazy::create |L| {
             match self.clone() {
-                Nil => {},
+                Nil => {}
                 Node(x, l, r) => {
                     L.push(Nil);
                     L.push_map((x, l, r).shrink(), |(a, b, c)| Node(a, b, c));
@@ -395,7 +391,6 @@ fn test_invalid_utf8() {
 
 #[test]
 fn test_str() {
-    //quick_check!(|s: Unicode| std::str::is_utf8(s.as_bytes()));
     quick_check!(|s: ~[char]| {
         let ss = std::str::from_chars(s);
         std::str::is_utf8(ss.as_bytes())
@@ -407,8 +402,6 @@ fn test_str() {
         let bs = s.as_bytes_with_null();
         bs.len() > 0 && bs[bs.len()-1] == 0
     });
-    //quick_check!(|s: Unicode| { std::str::from_bytes(s.as_bytes()) == *s });
-
 }
 
 #[test]
@@ -416,7 +409,7 @@ fn test_random_stuff() {
     quick_check!(|v: ~[int]| { (v.head_opt().is_some()) == (v.len() > 0) });
     quick_check!(|v: ~[~str]| v.head_opt() == v.iter().next());
 
-/*
+    /*
     quick_check!(|(v, n): (~[i8], SmallN)| {
         v.iter().take_(*n).len_() == v.len().min(&*n)
     });
@@ -444,7 +437,6 @@ fn test_random_stuff() {
         x.iter().zip(y.iter()).len_() == x.len().min(&y.len())
     });
 
-/*
     quick_check!(|(x,y): (~[u8], ~[u8])| {
         let v = [&x, &y];
         let xs = v.iter().flat_map_(|a| a.iter());
@@ -452,5 +444,4 @@ fn test_random_stuff() {
         ys.iter().zip(x.iter().chain_(y.iter())).all(|(a, b)| *a == *b) &&
             ys.len() == x.len() + y.len()
     });
-    */
 }
