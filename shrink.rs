@@ -55,17 +55,16 @@ impl Shrink for uint {
 }
 
 macro_rules! shrink_tuple(
-    ($($T:ident),+ -> $($U:ident),+ -> $($S:expr),+) => (
+    ($($T:ident),+ -> $U:pat-> $($S:expr),+) => (
     impl<$($T: Owned + Clone + Shrink),+> Shrink for ($($T),+) {
         fn shrink(&self) -> Lazy<($($T),+)> {
             do Lazy::create |L| {
                 match self {
                     &($(ref $T),+) => {
                         $(
-                            let $U = $T.clone();
-                        )+
-                        $(
-                            L.push_map($T.shrink(), |s| $S);
+                            match self.clone() {
+                                $U => L.push_map($T.shrink(), |s| $S)
+                            }
                         )+
                     }
                 }
@@ -77,26 +76,43 @@ macro_rules! shrink_tuple(
 
 shrink_tuple!(
     A, B ->
-    a, b -> 
+    (a, b) ->
     (s, b.clone()),
     (a.clone(), s))
 
 shrink_tuple!(
     A, B, C ->
-    a, b, c -> 
+    (a, b, c) ->
     (s, b.clone(), c.clone()),
     (a.clone(), s, c.clone()),
     (a.clone(), b.clone(), s))
 
 shrink_tuple!(
-    A, B, C, D
-    ->
-    a, b, c, d
-    ->
+    A, B, C, D ->
+    (a, b, c, d) ->
     (s, b.clone(), c.clone(), d.clone()),
     (a.clone(), s, c.clone(), d.clone()),
     (a.clone(), b.clone(), s, d.clone()),
     (a.clone(), b.clone(), c.clone(), s))
+
+shrink_tuple!(
+    A, B, C, D, E ->
+    (a, b, c, d, e) ->
+    (s, b.clone(), c.clone(), d.clone(), e.clone()),
+    (a.clone(), s, c.clone(), d.clone(), e.clone()),
+    (a.clone(), b.clone(), s, d.clone(), e.clone()),
+    (a.clone(), b.clone(), c.clone(), s, e.clone()),
+    (a.clone(), b.clone(), c.clone(), d.clone(), s))
+
+shrink_tuple!(
+    A, B, C, D, E, F ->
+    (a, b, c, d, e, f) ->
+    (s, b.clone(), c.clone(), d.clone(), e.clone(), f.clone()),
+    (a.clone(), s, c.clone(), d.clone(), e.clone(), f.clone()),
+    (a.clone(), b.clone(), s, d.clone(), e.clone(), f.clone()),
+    (a.clone(), b.clone(), c.clone(), s, e.clone(), f.clone()),
+    (a.clone(), b.clone(), c.clone(), d.clone(), s, f.clone()),
+    (a.clone(), b.clone(), c.clone(), d.clone(), e.clone(), s))
 
 impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
@@ -113,7 +129,6 @@ impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
 }
 
 impl<T: Owned + Shrink> Shrink for ~T {
-    /* FIXME: This impl causes crashes? */
     fn shrink(&self) -> Lazy<~T> {
         do Lazy::create |L| {
             L.push_map((**self).shrink(), |u| ~u);

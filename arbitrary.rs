@@ -92,7 +92,7 @@ macro_rules! arb_rand( ($T:ty) => (
     )
 )
 
-macro_rules! arb_tuple( ($($T:ident),+ -> $($S:expr),+) => (
+macro_rules! arb_tuple( ($($T:ident),+ ) => (
         impl<$($T: Clone + Arbitrary),+> Arbitrary for ($($T),+) {
             fn arbitrary(sz: uint) -> ($($T),+) {
                 ($(Arbitrary::arbitrary::<$T>(sz)),+)
@@ -110,31 +110,13 @@ arb_rand!(bool)
 arb_rand!(char)
 arb_rand!(())
 
-arb_tuple!(A, B ->
-    (s, B.clone()),
-    (A.clone(), s))
-arb_tuple!(A, B, C ->
-    (s, B.clone(), C.clone()),
-    (A.clone(), s, C.clone()),
-    (A.clone(), B.clone(), s))
-arb_tuple!(A, B, C, D ->
-    (s, B.clone(), C.clone(), D.clone()),
-    (A.clone(), s, C.clone(), D.clone()),
-    (A.clone(), B.clone(), s, D.clone()),
-    (A.clone(), B.clone(), C.clone(), s))
-arb_tuple!(A, B, C, D, E ->
-    (s, B.clone(), C.clone(), D.clone(), E.clone()),
-    (A.clone(), s, C.clone(), D.clone(), E.clone()),
-    (A.clone(), B.clone(), s, D.clone(), E.clone()),
-    (A.clone(), B.clone(), C.clone(), s, E.clone()),
-    (A.clone(), B.clone(), C.clone(), D.clone(), s))
-arb_tuple!(A, B, C, D, E, F ->
-    (s, B.clone(), C.clone(), D.clone(), E.clone(), F.clone()),
-    (A.clone(), s, C.clone(), D.clone(), E.clone(), F.clone()),
-    (A.clone(), B.clone(), s, D.clone(), E.clone(), F.clone()),
-    (A.clone(), B.clone(), C.clone(), s, E.clone(), F.clone()),
-    (A.clone(), B.clone(), C.clone(), D.clone(), s, F.clone()),
-    (A.clone(), B.clone(), C.clone(), D.clone(), E.clone(), s))
+arb_tuple!(A, B)
+arb_tuple!(A, B, C)
+arb_tuple!(A, B, C, D)
+arb_tuple!(A, B, C, D, E)
+arb_tuple!(A, B, C, D, E, F)
+arb_tuple!(A, B, C, D, E, F, G)
+arb_tuple!(A, B, C, D, E, F, G, H)
 
 impl<T: Rand> Arbitrary for Random<T> {
     fn arbitrary(_: uint) -> Random<T> {

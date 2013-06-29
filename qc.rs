@@ -228,9 +228,9 @@ impl<T: Owned + Clone + Shrink> Shrink for UserTree<T> {
         do Lazy::create |L| {
             match self.clone() {
                 Nil => {},
-                Node(x, ~l, ~r) => {
+                Node(x, l, r) => {
                     L.push(Nil);
-                    L.push_map((x, l, r).shrink(), |(a, b, c)| Node(a, ~b, ~c));
+                    L.push_map((x, l, r).shrink(), |(a, b, c)| Node(a, b, c));
                 }
             }
         }
@@ -328,9 +328,11 @@ fn test_qc_shrink() {
     let s = (SmallN(1), SmallN(10), SmallN(3));
     let shrink = quick_shrink(config, s, |(a, b, c)| *a + *b + *c == 0);
     assert_eq!(shrink, (SmallN(0), SmallN(0), SmallN(1)));
-/*
-    */
 
+    /* test the biggest supported tuple */
+    let t: (uint, (), ~[u8], Option<bool>, u8, ~str) = arbitrary(config.size);
+    let shrink = quick_shrink(config, t, |_| false);
+    assert_eq!(shrink, (0, (), ~[], None, 0, ~""));
 }
 
 #[test]
