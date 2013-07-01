@@ -178,15 +178,9 @@ impl<T: Send + Clone + Shrink> Shrink for ~[T] {
 
         do L.push_thunk(self.clone()) |L, v| {
             if v.len() > 2 {
-                /* splitting a vec is awkward with Clone .. */
-                L.push(
-                    v.iter().transform(|x| x.clone()).skip(v.len()/2).collect()
-                );
-                L.push({
-                    let mut v1 = v.clone();
-                    v1.truncate(v.len()/2);
-                    v1
-                })
+                let mid = v.len()/2;
+                L.push(v.iter().take_(mid).transform(|x| x.clone()).collect());
+                L.push(v.iter().skip (mid).transform(|x| x.clone()).collect());
             }
             do L.push_thunk(v) |L, v| {
                 for std::uint::range(0, v.len()) |index| {
