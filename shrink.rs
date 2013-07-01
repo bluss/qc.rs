@@ -58,6 +58,20 @@ impl Shrink for uint {
     fn shrink(&self) -> Lazy<uint> { Lazy::new_from(shrink_uint!(*self)) }
 }
 
+/* type out the (A, B) tuple case as we can save half the .clone() calls */
+impl<A: Send + Clone + Shrink, B: Send + Clone + Shrink> Shrink for (A, B) {
+    fn shrink(&self) -> Lazy<(A, B)> {
+        match self {
+            &(ref A, ref B) => {
+                let mut L = Lazy::new();
+                L.push_map_env(A.shrink(), B.clone(), |s, b| (s, b.clone()));
+                L.push_map_env(B.shrink(), A.clone(), |s, a| (a.clone(), s));
+                L
+            }
+        }
+    }
+}
+
 macro_rules! shrink_tuple(
     ($($T:ident),+ -> $($S:expr),+) => (
     impl<$($T: Send + Clone + Shrink),+> Shrink for ($($T),+) {
@@ -75,12 +89,6 @@ macro_rules! shrink_tuple(
     }
     )
 )
-
-
-shrink_tuple!(
-    A, B ->
-    (s, t.n1().clone()),
-    (t.n0().clone(), s))
 
 shrink_tuple!(
     A, B, C ->
