@@ -37,6 +37,9 @@ according to those terms.
 
 */
 
+#[cfg(test)]
+extern mod extra;
+
 use lazy::Lazy;
 use shrink::Shrink;
 use arbitrary::{Arbitrary, arbitrary, SmallN};
@@ -266,6 +269,36 @@ fn test_qc_smalln() {
     quick_check_occurs!(|n: SmallN| *n == 0);
     quick_check_occurs!(|n: SmallN| *n == 1);
     quick_check_occurs!(|n: SmallN| *n > 10);
+}
+#[bench]
+fn shrink_bench_tup_2(b: &mut extra::test::BenchHarness) {
+    let t: (uint, uint) = (12345, 6789);
+    do b.iter {
+        let t = t.clone();
+        quick_shrink(config, t, |_| true);
+    }
+}
+
+#[bench]
+fn shrink_bench_minimal(b: &mut extra::test::BenchHarness) {
+    let t: (uint, UserTree<uint>, ~[u8], (Option<uint>, ~str)) = (
+        63748, Node(2, ~Node(3, ~Nil, ~Nil), ~Nil), bytes!("text twist").to_owned(),
+            (Some(256), ~"1729"));
+    do b.iter {
+        let t = t.clone();
+        quick_shrink(config, t, |_| false);
+    }
+}
+
+#[bench]
+fn shrink_bench_noshrink(b: &mut extra::test::BenchHarness) {
+    let t: (uint, UserTree<uint>, ~[u8], (Option<uint>, ~str)) = (
+        63748, Node(2, ~Node(3, ~Nil, ~Nil), ~Nil), bytes!("text twist").to_owned(),
+            (Some(256), ~"1729"));
+    do b.iter {
+        let t = t.clone();
+        quick_shrink(config, t, |_| true);
+    }
 }
 
 #[test]
