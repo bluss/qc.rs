@@ -60,7 +60,7 @@ impl Shrink for uint {
 
 macro_rules! shrink_tuple(
     ($($T:ident),+ -> $($S:expr),+) => (
-    impl<$($T: Owned + Clone + Shrink),+> Shrink for ($($T),+) {
+    impl<$($T: Send + Clone + Shrink),+> Shrink for ($($T),+) {
         fn shrink(&self) -> Lazy<($($T),+)> {
             do Lazy::create |L| {
                 match self {
@@ -112,7 +112,7 @@ shrink_tuple!(
     (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), s, t.n5().clone()),
     (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone(), s))
 
-impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
+impl<T: Send + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
         do Lazy::create |L| {
             match *self {
@@ -126,7 +126,7 @@ impl<T: Owned + Clone + Shrink> Shrink for Option<T> {
     }
 }
 
-impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Result<T, U> {
+impl<T: Send + Clone + Shrink, U: Send + Clone + Shrink> Shrink for Result<T, U> {
     fn shrink(&self) -> Lazy<Result<T, U>> {
         do Lazy::create |L| {
             match *self {
@@ -137,7 +137,7 @@ impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Result<T, 
     }
 }
 
-impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Either<T, U> {
+impl<T: Send + Clone + Shrink, U: Send + Clone + Shrink> Shrink for Either<T, U> {
     fn shrink(&self) -> Lazy<Either<T, U>> {
         do Lazy::create |L| {
             match *self {
@@ -148,7 +148,7 @@ impl<T: Owned + Clone + Shrink, U: Owned + Clone + Shrink> Shrink for Either<T, 
     }
 }
 
-impl<T: Owned + Shrink> Shrink for ~T {
+impl<T: Send + Shrink> Shrink for ~T {
     fn shrink(&self) -> Lazy<~T> {
         do Lazy::create |L| {
             L.push_map((**self).shrink(), |u| ~u);
@@ -167,7 +167,7 @@ impl Shrink for ~str {
     }
 }
 
-impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
+impl<T: Send + Clone + Shrink> Shrink for ~[T] {
     fn shrink(&self) -> Lazy<~[T]> {
         let mut L = Lazy::new();
         if self.len() == 0 {
@@ -212,7 +212,7 @@ impl<T: Owned + Clone + Shrink> Shrink for ~[T] {
 }
 
 
-impl<T: Owned + Clone + Shrink> Shrink for Cell<T> {
+impl<T: Send + Clone + Shrink> Shrink for Cell<T> {
     fn shrink(&self) -> Lazy<Cell<T>> {
         do Lazy::create |L| {
             if !self.is_empty() {

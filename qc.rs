@@ -99,11 +99,9 @@ impl QConfig {
  NOTE: `A` must implement `Clone`.
  */
 pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop: &fn(A) -> bool) {
-    for std::uint::range(0, cfg.trials) |i| {
+    let mut i = 0;
+    while i < cfg.trials {
         let value = arbitrary::<A>(cfg.size + if cfg.grow { i / 8 } else { 0 });
-        if cfg.verbose {
-            //println(fmt!("qc %s:  %u. trying value '%?'", name, 1+i, &value));
-        }
         let v_copy = value.clone();
         if !prop(value) {
             if cfg.verbose {
@@ -112,6 +110,7 @@ pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop
             let shrink = quick_shrink(cfg, v_copy, prop);
             fail!(fmt!("qc %s: falsified (%u trials) with value '%?'", name, 1+i, shrink));
         }
+        i += 1;
     }
     if cfg.verbose {
         println(fmt!("qc %s: passed'", name));
@@ -120,11 +119,16 @@ pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop
 
 pub fn quick_shrink<A: Clone + Shrink>(cfg: QConfig, value: A, prop: &fn(A) -> bool) -> A {
     let mut shrinks = value.shrink();
-    for shrinks.advance |elt| {
-        let elt_cpy = elt.clone();
-        if !prop(elt) {
-            if cfg.verbose { println(fmt!("Shrunk to: %?", &elt_cpy)); }
-            return quick_shrink(cfg, elt_cpy, prop);
+    loop {
+        match shrinks.next() {
+            None => break,
+            Some(elt) => {
+                let elt_cpy = elt.clone();
+                if !prop(elt) {
+                    if cfg.verbose { println(fmt!("Shrunk to: %?", &elt_cpy)); }
+                    return quick_shrink(cfg, elt_cpy, prop);
+                }
+            }
         }
     }
     if cfg.verbose {
@@ -199,7 +203,7 @@ impl<T: Clone + Arbitrary> Arbitrary for UserTree<T> {
 }
 
 /// Simply dispatch to re-use the shrink implementation on tuples
-impl<T: Owned + Clone + Shrink> Shrink for UserTree<T> {
+impl<T: Send + Clone + Shrink> Shrink for UserTree<T> {
     fn shrink(&self) -> Lazy<UserTree<T>> {
         do Lazy::create |L| {
             match self.clone() {
