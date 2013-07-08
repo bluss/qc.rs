@@ -61,8 +61,8 @@ impl<T: Arbitrary> Iterator<T> for Iter<T> {
         } else { None }
     }
 
-    fn size_hint(&self) -> (Option<uint>, Option<uint>) {
-        (Some(self.count), Some(self.count))
+    fn size_hint(&self) -> (uint, Option<uint>) {
+        (self.count, Some(self.count))
     }
 }
 
