@@ -40,9 +40,9 @@ according to those terms.
 #[cfg(test)]
 extern mod extra;
 
-use lazy::Lazy;
-use shrink::Shrink;
-use arbitrary::{Arbitrary, arbitrary, SmallN};
+pub use lazy::Lazy;
+pub use shrink::Shrink;
+pub use arbitrary::{Arbitrary, arbitrary, SmallN};
 
 
 mod lazy;
