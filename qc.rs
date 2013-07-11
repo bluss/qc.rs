@@ -322,7 +322,7 @@ fn test_qc_shrink() {
     assert_eq!(shrink, None);
 
     let s = ~[Some(~"hi"), None, Some(~"more"), None];
-    assert_eq!(quick_shrink(config, s, |v| !v.iter().filter_map(|&x| x).any_(|s| s.contains_char('e'))),
+    assert_eq!(quick_shrink(config, s, |v| !v.iter().any(|x| x.map_default(false, |s| s.contains_char('e')))),
         ~[Some(~"e")]);
 
     let s = ~"boots are made for walking";
