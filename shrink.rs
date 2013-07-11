@@ -199,9 +199,10 @@ impl<T: Send + Clone + Shrink> Shrink for ~[T] {
                         L.push(v1);
                         /* shrink one at a time */
                         do L.push_thunk((index, v)) |L, (index, v)| {
-                            do L.push_map_env(v[index].shrink(), (index, v)) |selt, &(index, v)| {
+                            do L.push_map_env(v[index].shrink(), (index, v))
+                                    |selt, &(ref index, ref v)| {
                                 let mut v1 = v.clone();
-                                v1[index] = selt;
+                                v1[*index] = selt;
                                 v1
                             }
                         }
