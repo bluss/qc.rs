@@ -73,7 +73,8 @@ impl<T> Lazy<T> {
 
     /// push a thunk to the end of the thunk list of lazy.
     /// ordered after all immediate push values.
-    pub fn push_thunk<Up: Send>(&mut self, x: Up, f: &'static fn:Send(&mut Lazy<T>, Up)) {
+    pub fn push_thunk<Up: Send>(&mut self, x: Up,
+                                f: &'static fn:'static(&mut Lazy<T>, Up)) {
         let f_extern: extern fn(&mut Lazy<T>, Up) = func_unwrap(f);
         let t = ~Thunk { upvar: x, f: f_extern };
         self.thunks.push(t as ~Eval<Lazy<T>>)
@@ -81,7 +82,8 @@ impl<T> Lazy<T> {
 
     /// lazily map from the iterator `a` using function `f`, appending the results to self.
     /// Static function without environment.
-    pub fn push_map<A, J: Send + Iterator<A>>(&mut self, it: J, f: &'static fn:Send(A) -> T) {
+    pub fn push_map<A, J: Send + Iterator<A>>(&mut self, it: J,
+                                              f: &'static fn:'static(A) -> T) {
         let f_extern: extern fn(A) -> T = func_unwrap(f);
         do self.push_thunk((f_extern, it)) |L, mut (f, it)| {
             match it.next() {
@@ -96,7 +98,8 @@ impl<T> Lazy<T> {
 
     /// Static function with ref to supplied environment.
     pub fn push_map_env<A, J: Send + Iterator<A>, Env: Send>
-        (&mut self, it: J, env: Env, f: &'static fn:Send(A, &mut Env) -> T) {
+        (&mut self, it: J, env: Env,
+         f: &'static fn:'static(A, &mut Env) -> T) {
         let f_extern: extern fn(A, &mut Env) -> T = func_unwrap(f);
         do self.push_thunk((f_extern, it, env)) |L, mut (f, it, env)| {
             match it.next() {
@@ -118,7 +121,8 @@ fn func_unwrap<F, R>(f: F) -> R {
     /* Workaround &'static fn() not being Send/Sendable */
     /* this is "safe" for &'static fn to extern fn */
     unsafe {
-        let (f, _): (R, *()) = ::std::cast::transmute(f);
+        let (f, p): (R, *()) = ::std::cast::transmute(f);
+        assert!(p.is_null());
         f
     }
 }
