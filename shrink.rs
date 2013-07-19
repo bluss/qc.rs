@@ -92,33 +92,33 @@ macro_rules! shrink_tuple(
 
 shrink_tuple!(
     A, B, C ->
-    (s, t.n1().clone(), t.n2().clone()),
-    (t.n0().clone(), s, t.n2().clone()),
-    (t.n0().clone(), t.n1().clone(), s))
+    (s,      t.n1(), t.n2()),
+    (t.n0(), s,      t.n2()),
+    (t.n0(), t.n1(), s))
 
 shrink_tuple!(
     A, B, C, D ->
-    (s, t.n1().clone(), t.n2().clone(), t.n3().clone()),
-    (t.n0().clone(), s, t.n2().clone(), t.n3().clone()),
-    (t.n0().clone(), t.n1().clone(), s, t.n3().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s))
+    (s,      t.n1(), t.n2(), t.n3()),
+    (t.n0(), s,      t.n2(), t.n3()),
+    (t.n0(), t.n1(), s,      t.n3()),
+    (t.n0(), t.n1(), t.n2(), s))
 
 shrink_tuple!(
     A, B, C, D, E ->
-    (s, t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone()),
-    (t.n0().clone(), s, t.n2().clone(), t.n3().clone(), t.n4().clone()),
-    (t.n0().clone(), t.n1().clone(), s, t.n3().clone(), t.n4().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s, t.n4().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), s))
+    (s,      t.n1(), t.n2(), t.n3(), t.n4()),
+    (t.n0(), s,      t.n2(), t.n3(), t.n4()),
+    (t.n0(), t.n1(), s,      t.n3(), t.n4()),
+    (t.n0(), t.n1(), t.n2(), s,      t.n4()),
+    (t.n0(), t.n1(), t.n2(), t.n3(), s))
 
 shrink_tuple!(
     A, B, C, D, E, F ->
-    (s, t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone(), t.n5().clone()),
-    (t.n0().clone(), s, t.n2().clone(), t.n3().clone(), t.n4().clone(), t.n5().clone()),
-    (t.n0().clone(), t.n1().clone(), s, t.n3().clone(), t.n4().clone(), t.n5().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), s, t.n4().clone(), t.n5().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), s, t.n5().clone()),
-    (t.n0().clone(), t.n1().clone(), t.n2().clone(), t.n3().clone(), t.n4().clone(), s))
+    (s,      t.n1(), t.n2(), t.n3(), t.n4(), t.n5()),
+    (t.n0(), s,      t.n2(), t.n3(), t.n4(), t.n5()),
+    (t.n0(), t.n1(), s,      t.n3(), t.n4(), t.n5()),
+    (t.n0(), t.n1(), t.n2(), s,      t.n4(), t.n5()),
+    (t.n0(), t.n1(), t.n2(), t.n3(), s,      t.n5()),
+    (t.n0(), t.n1(), t.n2(), t.n3(), t.n4(), s))
 
 impl<T: Send + Clone + Shrink> Shrink for Option<T> {
     fn shrink(&self) -> Lazy<Option<T>> {
