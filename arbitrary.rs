@@ -113,12 +113,12 @@ impl<T: Arbitrary> Arbitrary for ~T {
     fn arbitrary(sz: uint) -> ~T { ~arbitrary(sz) }
 }
 
-impl<T: Arbitrary> Arbitrary for @T {
+impl<T: 'static + Arbitrary> Arbitrary for @T {
     #[inline]
     fn arbitrary(sz: uint) -> @T { @arbitrary(sz) }
 }
 
-impl<T: Arbitrary> Arbitrary for @mut T {
+impl<T: 'static + Arbitrary> Arbitrary for @mut T {
     #[inline]
     fn arbitrary(sz: uint) -> @mut T { @mut arbitrary(sz) }
 }
