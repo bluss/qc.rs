@@ -91,7 +91,6 @@ arb_rand!(int)
 arb_rand!(uint)
 arb_rand!(float)
 arb_rand!(bool)
-arb_rand!(char)
 arb_rand!(())
 
 arb_tuple!(A, B)
@@ -126,6 +125,14 @@ impl<T: 'static + Arbitrary> Arbitrary for @mut T {
 impl Arbitrary for u8 {
     fn arbitrary(_: uint) -> u8 {
         std::rand::random()
+    }
+}
+
+impl Arbitrary for char {
+    fn arbitrary(_: uint) -> char {
+        let unicode_max = 0x110000;
+        let r: uint = std::rand::random();
+        (r % unicode_max) as char
     }
 }
 
