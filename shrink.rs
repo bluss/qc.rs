@@ -22,8 +22,6 @@ impl Shrink for char {}
 impl Shrink for float {}
 impl Shrink for i8 {}
 impl Shrink for int {}
-impl<T> Shrink for @T {}
-impl<T> Shrink for @mut T {}
 
 fn mpowers_of_two<T: Num + Ord>(n: T) -> ~[T] {
     /* generate ~[0, n/2, n - n/4, n - n/8, n - n/16, .., n - 1] */
@@ -160,6 +158,22 @@ impl<T: Send + Shrink> Shrink for ~T {
     fn shrink(&self) -> Lazy<~T> {
         do Lazy::create |L| {
             L.push_map((**self).shrink(), |u| ~u);
+        }
+    }
+}
+
+impl<T: 'static + Send + Shrink> Shrink for @T {
+    fn shrink(&self) -> Lazy<@T> {
+        do Lazy::create |L| {
+            L.push_map((**self).shrink(), |u| @u);
+        }
+    }
+}
+
+impl<T: 'static + Send + Shrink> Shrink for @mut T {
+    fn shrink(&self) -> Lazy<@mut T> {
+        do Lazy::create |L| {
+            L.push_map((**self).shrink(), |u| @mut u);
         }
     }
 }
