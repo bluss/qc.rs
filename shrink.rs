@@ -9,7 +9,6 @@ use std::cell::Cell;
  The Shrink trait is used when trying to reduce a testcase to a minimal testcase.
  Shrink should generate "simpler" values, the simplest first.
  */
-#[allow(default_methods)]
 pub trait Shrink {
     fn shrink(&self) -> Lazy<Self> {
         Lazy::new()

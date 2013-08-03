@@ -12,7 +12,6 @@ use std::cell::Cell;
  You can pass a size factor to allow specifying test size (sizes of vectors and
  numbers).
  */
-#[allow(default_methods)]
 pub trait Arbitrary {
     /**
      arbitrary should return an arbitrary value of its type.
