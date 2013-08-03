@@ -413,17 +413,6 @@ fn test_qc_containers() {
 }
 
 #[test]
-#[should_fail]
-fn test_invalid_utf8() {
-    /* Demonstrate is_utf8 accepts some invalid utf-8 */
-    quick_check!(config.verbose(true).grow(false).trials(5000), |v: ~[u8]| {
-        if std::str::is_utf8(v) {
-            v.iter().all(|&c| c != 192 && c != 193 && (c < 245))
-        } else { true }
-    });
-}
-
-#[test]
 fn test_str() {
     quick_check!(|s: ~[char]| {
         let ss = std::str::from_chars(s);
