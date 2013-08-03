@@ -5,6 +5,7 @@ use super::std;
 use super::std::rand::{Rand, RngUtil};
 
 use std::cell::Cell;
+use std::hashmap::{HashMap, HashSet};
 /* Arbitrary */
 
 /**
@@ -76,7 +77,7 @@ macro_rules! arb_rand( ($T:ty) => (
 )
 
 macro_rules! arb_tuple( ($($T:ident),+ ) => (
-        impl<$($T: Clone + Arbitrary),+> Arbitrary for ($($T),+) {
+        impl<$($T: Arbitrary),+> Arbitrary for ($($T),+) {
             fn arbitrary(sz: uint) -> ($($T),+) {
                 ($(Arbitrary::arbitrary::<$T>(sz)),+)
             }
@@ -193,5 +194,17 @@ impl <T: Arbitrary> Arbitrary for Cell<T> {
         } else {
             Cell::new_empty()
         }
+    }
+}
+
+impl<K: Eq + Hash + Arbitrary> Arbitrary for HashSet<K> {
+    fn arbitrary(sz: uint) -> HashSet<K> {
+        arbiter::<K>(sz).collect()
+    }
+}
+
+impl<K: Eq + Hash + Arbitrary, V: Arbitrary> Arbitrary for HashMap<K, V> {
+    fn arbitrary(sz: uint) -> HashMap<K, V> {
+        arbiter::<(K, V)>(sz).collect()
     }
 }

@@ -4,6 +4,7 @@ use lazy::Lazy;
 use super::std;
 
 use std::cell::Cell;
+use std::hashmap::HashMap;
 
 /**
  The Shrink trait is used when trying to reduce a testcase to a minimal testcase.
@@ -235,6 +236,18 @@ impl<T: Send + Clone + Shrink> Shrink for Cell<T> {
                 let v = self.with_ref(|x| x.clone());
                 L.push(Cell::new_empty());
                 L.push_map(v.shrink(), |y| Cell::new(y));
+            }
+        }
+    }
+}
+
+impl<K: Eq + Hash + Clone + Shrink + Send,
+     V: Clone + Shrink + Send> Shrink for HashMap<K, V> {
+    fn shrink(&self) -> Lazy<HashMap<K, V>> {
+        do Lazy::create |L| {
+            if self.len() > 0 {
+                let v = self.clone().consume().collect::<~[(K, V)]>();
+                L.push_map(v.shrink(), |v| v.consume_iter().collect());
             }
         }
     }
