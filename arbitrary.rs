@@ -38,7 +38,7 @@ pub struct SmallN(uint);
 
 fn small_n(size: uint) -> uint {
     let f: std::rand::distributions::Exp1 = std::rand::random();
-    let n = (*f) * (size as f64) as uint;
+    let n = ((*f) * (size as f64)) as uint;
     n.min(&(16 * size))
 }
 

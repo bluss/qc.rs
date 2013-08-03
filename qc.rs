@@ -121,17 +121,11 @@ pub fn quick_check<A: Clone + Shrink + Arbitrary>(name: &str, cfg: QConfig, prop
 }
 
 pub fn quick_shrink<A: Clone + Shrink>(cfg: QConfig, value: A, prop: &fn(A) -> bool) -> A {
-    let mut shrinks = value.shrink();
-    loop {
-        match shrinks.next() {
-            None => break,
-            Some(elt) => {
-                let elt_cpy = elt.clone();
-                if !prop(elt) {
-                    if cfg.verbose { println(fmt!("Shrunk to: %?", &elt_cpy)); }
-                    return quick_shrink(cfg, elt_cpy, prop);
-                }
-            }
+    for elt in value.shrink() {
+        let elt_cpy = elt.clone();
+        if !prop(elt) {
+            if cfg.verbose { println(fmt!("Shrunk to: %?", &elt_cpy)); }
+            return quick_shrink(cfg, elt_cpy, prop);
         }
     }
     if cfg.verbose {
@@ -142,7 +136,7 @@ pub fn quick_shrink<A: Clone + Shrink>(cfg: QConfig, value: A, prop: &fn(A) -> b
 
 pub fn quick_check_occurs<A: Arbitrary>(cfg: QConfig, name: &str, prop: &fn(A) -> bool) {
     let mut n = 0u;
-    for std::uint::range(0, cfg.trials) |i| {
+    for i in range(0, cfg.trials) {
         n += 1;
         let value = arbitrary(cfg.size + if cfg.grow { i / 8 } else { 0 });
         if prop(value) {

@@ -205,7 +205,7 @@ impl<T: Send + Clone + Shrink> Shrink for ~[T] {
                 L.push(v.iter().skip (mid).transform(|x| x.clone()).collect());
             }
             do L.push_thunk(v) |L, v| {
-                for std::uint::range(0, v.len()) |index| {
+                for index in range(0, v.len()) {
                     /* remove one at a time */
                     do L.push_thunk((index, v.clone())) |L, (index, v)| {
                         let mut v1 = v.clone();
