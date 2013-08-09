@@ -44,7 +44,7 @@ fn small_n(size: uint) -> uint {
 
 /* Helper: Iter */
 #[deriving(Clone)]
-priv struct Iter<T> {
+struct Iter<T> {
     count: uint,
     size: uint,
 }
