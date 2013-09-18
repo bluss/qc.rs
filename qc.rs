@@ -37,6 +37,8 @@ according to those terms.
 
 */
 
+#[crate_type="lib"];
+
 #[cfg(test)]
 extern mod extra;
 

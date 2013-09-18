@@ -5,7 +5,7 @@ qc: $(SRCS)
 	rust build --test $<
 
 libqc: $(SRCS)
-	rust build --lib $<
+	rustc $<
 
 test: qc
 	./qc
