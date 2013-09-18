@@ -27,8 +27,9 @@ fn mpowers_of_two<T: Num + Ord>(n: T) -> ~[T] {
     /* generate ~[0, n/2, n - n/4, n - n/8, n - n/16, .., n - 1] */
     use std::num::One;
     let mut ret = ~[std::num::Zero::zero()];
-    let two = One::one::<T>() + One::one();
-    let mut div = One::one::<T>() + One::one();
+    let one:T = One::one();
+    let two = one + one;
+    let mut div = one + one;
     /* check for end or overflow */
     while div < n && div >= two{
         let next = n/div;

@@ -79,7 +79,7 @@ macro_rules! arb_rand( ($T:ty) => (
 macro_rules! arb_tuple( ($($T:ident),+ ) => (
         impl<$($T: Arbitrary),+> Arbitrary for ($($T),+) {
             fn arbitrary(sz: uint) -> ($($T),+) {
-                ($(Arbitrary::arbitrary::<$T>(sz)),+)
+                ($(arbitrary::<$T>(sz)),+)
             }
         }
     )
