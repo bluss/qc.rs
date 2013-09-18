@@ -413,12 +413,7 @@ fn test_str() {
         std::str::is_utf8(ss.as_bytes())
     });
 
-    //assert!(!std::str::is_utf8(&[69, 70, 119, 213, 182, 73, 244, 145, 164, 184]));
 
-    quick_check!(|s: ~str| {
-        let bs = s.as_bytes_with_null();
-        bs.len() > 0 && bs[bs.len()-1] == 0
-    });
 }
 
 #[test]
@@ -426,17 +421,17 @@ fn test_random_stuff() {
     quick_check!(|v: ~[int]| { (v.head_opt().is_some()) == (v.len() > 0) });
     quick_check!(|v: ~[~str]| v.head_opt() == v.iter().next());
 
-    quick_check!(|v: ~[Option<i8>]| { v == v.iter().transform(|&elt| elt).collect() });
+    quick_check!(|v: ~[Option<i8>]| { v == v.iter().map(|&elt| elt).collect() });
 
     quick_check!(|v: ~[~str]| { v == v.clone() });
 
     /* Check that chain is correct length */
     quick_check!(|(x,y): (~[u8], ~[u8])| {
-        x.len() + y.len() == x.iter().chain_(y.iter()).len_()
+        x.len() + y.len() == x.iter().chain(y.iter()).len()
     });
     /* Check that chain has the right elements */
     quick_check!(|(x,y): (~[u8], ~[u8])| {
-        x.iter().chain_(y.iter()).skip(x.len()).zip(y.iter()).all(|(a, b)| a == b)
+        x.iter().chain(y.iter()).skip(x.len()).zip(y.iter()).all(|(a, b)| a == b)
     });
 
     /* Check that enumerate is indexing correctly */
@@ -445,14 +440,14 @@ fn test_random_stuff() {
     });
 
     quick_check!(|(x,y): (~[u8], ~[u8])| {
-        x.iter().zip(y.iter()).len_() == x.len().min(&y.len())
+        x.iter().zip(y.iter()).len() == x.len().min(&y.len())
     });
 
     quick_check!(|(x,y): (~[u8], ~[u8])| {
         let v = [&x, &y];
-        let xs = v.iter().flat_map_(|a| a.iter());
-        let ys: ~[u8] = xs.transform(|&x: &u8| x).collect();
-        ys.iter().zip(x.iter().chain_(y.iter())).all(|(a, b)| *a == *b) &&
+        let xs = v.iter().flat_map(|a| a.iter());
+        let ys: ~[u8] = xs.map(|&x: &u8| x).collect();
+        ys.iter().zip(x.iter().chain(y.iter())).all(|(a, b)| *a == *b) &&
             ys.len() == x.len() + y.len()
     });
 }

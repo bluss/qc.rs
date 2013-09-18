@@ -201,8 +201,8 @@ impl<T: Send + Clone + Shrink> Shrink for ~[T] {
         do L.push_thunk(self.clone()) |L, v| {
             if v.len() > 2 {
                 let mid = v.len()/2;
-                L.push(v.iter().take_(mid).transform(|x| x.clone()).collect());
-                L.push(v.iter().skip (mid).transform(|x| x.clone()).collect());
+                L.push(v.iter().take(mid).map(|x| x.clone()).collect());
+                L.push(v.iter().skip(mid).map(|x| x.clone()).collect());
             }
             do L.push_thunk(v) |L, v| {
                 for index in range(0, v.len()) {
@@ -246,8 +246,8 @@ impl<K: Eq + Hash + Clone + Shrink + Send,
     fn shrink(&self) -> Lazy<HashMap<K, V>> {
         do Lazy::create |L| {
             if self.len() > 0 {
-                let v = self.clone().consume().collect::<~[(K, V)]>();
-                L.push_map(v.shrink(), |v| v.consume_iter().collect());
+                let v = self.clone().move_iter().collect::<~[(K, V)]>();
+                L.push_map(v.shrink(), |v| v.move_iter().collect());
             }
         }
     }
