@@ -130,9 +130,7 @@ impl Arbitrary for u8 {
 
 impl Arbitrary for char {
     fn arbitrary(_: uint) -> char {
-        let unicode_max = 0x110000;
-        let r: uint = std::rand::random();
-        (r % unicode_max) as char
+        std::rand::random::<u8>() as char
     }
 }
 
